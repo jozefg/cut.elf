@@ -29,8 +29,6 @@ false/l : hyp -> proof.
 \//r2   : proof -> proof.
 \//l    : (hyp -> proof) -> (hyp -> proof) -> hyp -> proof.
 
-%block someHyps : block {h : hyp}.
-
 %% Now we can unite them with a judgment
 
 of  : proof -> prop -> type.
