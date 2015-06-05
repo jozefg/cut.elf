@@ -1,0 +1,141 @@
+%% Now let's state and prove cut
+
+cut : proof -> (hyp -> proof) -> proof -> type.
+%mode cut +A +B -C.
+
+trivial : cut P' ([x] P) P.
+
+%% Principle cuts
+
+p/init1 : cut (init H) ([x] P x) (P H).
+p/init2 : cut P ([x] init x) P.
+p/=>   : cut (=>/r F) ([x] =>/l ([y] C y x) (Arg x) x) Out'
+          <- ({y} cut (=>/r F) (C y) (C' y))
+          <- cut (=>/r F) Arg Arg'
+          <- cut Arg' F Out
+          <- cut Out C' Out'.
+p//\   : cut (/\/r R L) ([x] /\/l ([y][z] C y z x) x) Out'
+          <- ({x}{y} cut (/\/r R L) (C x y) (C' x y))
+          <- ({x} cut R (C' x) (Out x))
+          <- cut L Out Out'.
+p/\//1 : cut (\//r1 L) ([x] \//l ([y] C2 y x) ([y] C1 y x) x) Out
+          <- ({x} cut (\//r1 L) (C1 x) (C1' x))
+          <- cut L C1' Out.
+p/\//2 : cut (\//r2 L) ([x] \//l ([y] C2 y x) ([y] C1 y x) x) Out
+          <- ({x} cut (\//r2 L) (C2 x) (C2' x))
+          <- cut L C2' Out.
+
+%% Leftist substitution
+
+l/=>    : cut (=>/l ([y] C y) Arg H) ([x] P x) (=>/l ([x] C' x) Arg H)
+           <- ({x} cut (C x) P (C' x)).
+l/false : cut (false/l H) P (false/l H).
+l//\    : cut (/\/l ([x][y] C x y) H) P (/\/l ([x][y] C' x y) H)
+           <- ({x}{y} cut (C x y) P (C' x y)).
+l/\/    : cut (\//l ([y] R  y) ([y] L  y) H) ([x] P x)
+              (\//l ([y] R' y) ([y] L' y) H)
+           <- ({x} cut (L x) P (L' x))
+           <- ({x} cut (R x) P (R' x)).
+
+%% Rightist substitution
+
+r/=> : cut P ([x] (=>/r ([y] F y x))) (=>/r ([y] F' y))
+        <- ({x} cut P (F x) (F' x)).
+r/true : cut P ([x] true/r) true/r.
+r//\ : cut P ([x] /\/r (R x) (L x)) (/\/r R' L')
+        <- cut P L L'
+        <- cut P R R'.
+r/\/1 : cut P ([x] \//r1 (L x)) (\//r1 L')
+         <- cut P L L'.
+r/\/2 : cut P ([x] \//r2 (R x)) (\//r2 R')
+         <- cut P R R'.
+
+%% Left-right commutative cuts
+
+lr/=> : cut P ([x] =>/l ([y] C y x) (Arg x) H) (=>/l C' Arg' H)
+         <- cut P Arg Arg'
+         <- ({y} cut P (C y) (C' y)).
+lr//\ : cut P ([x] /\/l ([y][z] C y z x) H) (/\/l C' H)
+         <- ({y}{z} cut P (C y z) (C' y z)).
+lr/\/ : cut P ([x] \//l ([y] R y x) ([y] L y x) H) (\//l R' L' H)
+         <- ({y} cut P (L y) (L' y))
+         <- ({y} cut P (R y) (R' y)).
+
+
+%% Now we verify that this is type-correct
+
+of/cut : {A} of P A
+          -> ({h} hof h A -> of (F h) B)
+          -> cut P F C
+          -> of C B
+          -> type.
+%mode of/cut +A +B +C -D -E.
+
+
+- : of/cut _ _ ([x][h] P) trivial P.
+
+%% Principle cuts
+
+- : of/cut _ (of/init H : of (init X) _) ([x][h] P x h) p/init1 (P X H).
+- : of/cut _ P ([x][h] of/init h) p/init2 P.
+- : of/cut _ (of/=>/r A) ([x][h] of/=>/l (C x h) (Arg x h) h)
+     (p/=> Out' Out CArg CC) OOut'
+     <- ({y}{yh} of/cut _ (of/=>/r A) ([x][h] C x h y yh) (CC y) (OCC y yh))
+     <- of/cut _ (of/=>/r A) Arg CArg OCArg
+     <- of/cut _ OCArg A Out OOut
+     <- of/cut _ OOut OCC Out' OOut'.
+- : of/cut _ (of//\/r R L) ([x][h] of//\/l ([y][z][hy][hz] C y z hy hz x h) h)
+     (p//\ COut' COut CC) OOut'
+     <- ({y}{hy}{z}{hz}
+           of/cut _ (of//\/r R L) (C y z hy hz) (CC y z) (C' y z hy hz))
+     <- ({y}{hy} of/cut _ R ([z][hz] C' y z hy hz) (COut y) (OOut y hy))
+     <- of/cut _ L OOut COut' OOut'.
+- : of/cut _ (of/\//r1 L) ([x][h] of/\//l _ ([y][yh] C y yh x h) h)
+     (p/\//1 COut CC) OOut
+     <- ({y}{yh} of/cut _ (of/\//r1 L) (C y yh) (CC y) (C' y yh))
+     <- of/cut _ L C' COut OOut.
+- : of/cut _ (of/\//r2 L) ([x][h] of/\//l ([y][yh] C y yh x h) _ h)
+     (p/\//2 COut CC) OOut
+     <- ({y}{yh} of/cut _ (of/\//r2 L) (C y yh) (CC y) (C' y yh))
+     <- of/cut _ L C' COut OOut.
+
+%% Leftist substitution
+
+- : of/cut _ (of/=>/l C A H) P (l/=> CC) (of/=>/l C' A H)
+     <- ({x}{h} of/cut _ (C x h) P (CC x) (C' x h)).
+- : of/cut _ (of/false/l H) _ l/false (of/false/l H).
+- : of/cut _ (of//\/l C H) P (l//\ CC) (of//\/l C' H)
+     <- ({x}{xh}{y}{yh} of/cut _ (C x y xh yh) P (CC x y) (C' x y xh yh)).
+- : of/cut _ (of/\//l R L H) P (l/\/ CR CL) (of/\//l R' L' H)
+     <- ({x}{h} of/cut _ (L x h) P (CL x) (L' x h))
+     <- ({x}{h} of/cut _ (R x h) P (CR x) (R' x h)).
+
+%% Rightist substitution
+
+- : of/cut _ P ([x][h] of/=>/r ([y][yh] F y yh x h)) (r/=> CF) (of/=>/r F')
+     <- ({x}{h} of/cut _ P (F x h) (CF x) (F' x h)).
+- : of/cut _ P ([x][h] of/true/r) r/true of/true/r.
+- : of/cut _ P ([x][h] of//\/r (R x h) (L x h)) (r//\ CR CL) (of//\/r R' L')
+     <- of/cut _ P L CL L'
+     <- of/cut _ P R CR R'.
+- : of/cut _ P ([x][h] of/\//r1 (L x h)) (r/\/1 CL) (of/\//r1 L')
+     <- of/cut _ P L CL L'.
+- : of/cut _ P ([x][h] of/\//r2 (R x h)) (r/\/2 CR) (of/\//r2 R')
+     <- of/cut _ P R CR R'.
+
+%% Left right commutative cuts
+
+- : of/cut _ P ([x][h] of/=>/l ([y][yh] C y yh x h) (A x h) H)
+     (lr/=> CC CA) (of/=>/l C' A' H)
+     <- of/cut _ P A CA A'
+     <- ({y}{yh} of/cut _ P (C y yh) (CC y) (C' y yh)).
+- : of/cut _ P ([x][h] of//\/l ([y][yh][z][zh] C y yh z zh x h) H)
+     (lr//\ CC) (of//\/l C' H)
+     <- ({y}{yh}{z}{zh} of/cut _ P (C y z yh zh) (CC y z) (C' y z yh zh)).
+- : of/cut _ P ([x][h] of/\//l ([y][yh] R y yh x h) ([y][yh] L y yh x h) H)
+     (lr/\/ CR CL) (of/\//l R' L' H)
+     <- ({y}{yh} of/cut _ P (L y yh) (CL y) (L' y yh))
+     <- ({y}{yh} of/cut _ P (R y yh) (CR y) (R' y yh)).
+
+%worlds (someHofs) (of/cut _ _ _ _ _).
+%total {A [B C]} (of/cut A B C _ _).

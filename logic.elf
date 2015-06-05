@@ -1,0 +1,70 @@
+%% First the syntax for our propositions
+
+prop  : type.
+
+=>    : prop -> prop -> prop. %infix right 4 =>.
+true  : prop.
+false : prop.
+/\    : prop -> prop -> prop. %infix none 5 /\.
+\/    : prop -> prop -> prop. %infix none 5 \/.
+
+%% Now proof terms
+
+proof   : type.
+hyp     : type.
+
+init    : hyp -> proof.
+
+=>/r    : (hyp -> proof) -> proof.
+=>/l    : (hyp -> proof) -> proof -> hyp -> proof.
+
+true/r  : proof.
+
+false/l : hyp -> proof.
+
+/\/r    : proof -> proof -> proof.
+/\/l    : (hyp -> hyp -> proof) -> hyp -> proof.
+
+\//r1   : proof -> proof.
+\//r2   : proof -> proof.
+\//l    : (hyp -> proof) -> (hyp -> proof) -> hyp -> proof.
+
+%block someHyps : block {h : hyp}.
+
+%% Now we can unite them with a judgment
+
+of  : proof -> prop -> type.
+hof : hyp   -> prop -> type.
+
+of/init : of (init H) A
+           <- hof H A.
+
+of/=>/r    : of (=>/r F) (A => B)
+              <- ({h} hof h A -> of (F h) B).
+of/=>/l    : of (=>/l C Arg F) U
+              <- hof F (A => B)
+              <- of Arg A
+              <- ({h} hof h B -> of (C h) U).
+
+of/true/r  : of true/r true.
+
+of/false/l : of (false/l H) A
+              <- hof H false.
+
+of//\/r    : of (/\/r R L) (A /\ B)
+              <- of L A
+              <- of R B.
+of//\/l    : of (/\/l C H) U
+              <- hof H (A /\ B)
+              <- ({h}{h'} hof h A -> hof h' B -> of (C h h') U).
+
+of/\//r1   : of (\//r1 L) (A \/ B)
+              <- of L A.
+of/\//r2   : of (\//r2 R) (A \/ B)
+              <- of R B.
+of/\//l    : of (\//l R L H) C
+              <- hof H (A \/ B)
+              <- ({h} hof h A -> of (L h) C)
+              <- ({h} hof h B -> of (R h) C).
+
+%block someHofs : some {A : prop} block {h : hyp}{deriv : hof h A}.
