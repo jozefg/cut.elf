@@ -31,11 +31,11 @@ false/l : hyp -> proof.
 
 %% Now we can unite them with a judgment
 
-of  : proof -> prop -> type.
-hof : hyp   -> prop -> type.
+of         : proof -> prop -> type.
+hof        : hyp   -> prop -> type.
 
-of/init : of (init H) A
-           <- hof H A.
+of/init    : of (init H) A
+              <- hof H A.
 
 of/=>/r    : of (=>/r F) (A => B)
               <- ({h} hof h A -> of (F h) B).

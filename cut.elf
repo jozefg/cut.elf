@@ -4,11 +4,11 @@ cut : proof -> (hyp -> proof) -> proof -> type.
 %mode cut +A +B -C.
 
 trivial : cut P' ([x] P) P.
+p/init1 : cut (init H) ([x] P x) (P H).
+p/init2 : cut P ([x] init x) P.
 
 %% Principle cuts
 
-p/init1 : cut (init H) ([x] P x) (P H).
-p/init2 : cut P ([x] init x) P.
 p/=>   : cut (=>/r F) ([x] =>/l ([y] C y x) (Arg x) x) Out'
           <- ({y} cut (=>/r F) (C y) (C' y))
           <- cut (=>/r F) Arg Arg'
